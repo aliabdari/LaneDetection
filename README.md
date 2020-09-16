@@ -1,4 +1,4 @@
-# LaneDetection
+# Lane Detection of a road
 detecting lanes of a road which is cpatured by an installed camera.
 
 We use hough transform in image processing for detecting different shapes like lines in images.
