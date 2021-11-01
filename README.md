@@ -1,5 +1,6 @@
 # Lane Detection of a road
 detecting lanes of a road which is cpatured by an installed camera.
 
-We use hough transform in image processing for detecting different shapes like lines in images.
-But the most lane detection approaches that I have seen around the internet use an installed camera on a car that moves in the street and they locate two lanes that are on the left and right side of the car.
+We use Hough transform, used in image processing for detecting different shapes like lines in images.
+
+The most lane detection methods, which I have seen on the internet, exploit an installed camera on a car moving in street, and then they locate two lanes located on the left and right of the car.
