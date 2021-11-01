@@ -1,5 +1,7 @@
 import cv2
 import numpy as np
+from bg_modeling import extract_bg
+import argparse
 
 global width
 global height
@@ -37,7 +39,7 @@ def fit_curve(x1, y1, x2, y2):
     m = (y2 - y1) / (x2 - x1)
     b = y1 - m * x1
     return m, b
-    
+
 
 def create_long_lines(lines, width, height):
     for line in lines:
@@ -66,32 +68,30 @@ def find_nearest_lines(lanes_equation, box):
 def find_nearest_lines2(lanes_equation, box):
     first_line = -1
     second_line = -1
-    
+
     center_x = box[0] + box[2] / 2
     center_y = box[1] + box[3]
 
     if center_y > 720:
-        return[-1]
+        return [-1]
 
     x_lists = []
     for m, b in lanes_equation:
         x = (center_y - b) / m
         x_lists.append(x)
 
-    
     for i in range(len(x_lists) - 1):
         if center_x >= x_lists[i] and center_x <= x_lists[i + 1]:
             first_line = i
             second_line = i + 1
             break
 
-    return [( first_line + second_line + 1 )//2]
+    return [(first_line + second_line + 1) // 2]
 
 
 def find_nearest_lines3(lanes_equation, box):
-    
     detection_list = []
-    
+
     center_x = box[0] + box[2] / 2
 
     center_y = box[1]
@@ -105,7 +105,7 @@ def find_nearest_lines3(lanes_equation, box):
     while center_y < box[1] + box[3]:
         if center_y > 720:
             break
-        
+
         first_line = -1
         second_line = -1
         x_lists = []
@@ -120,8 +120,8 @@ def find_nearest_lines3(lanes_equation, box):
                 break
 
         if first_line != -1:
-            detection_list = detection_list + [(first_line + second_line + 1)//2]
-        
+            detection_list = detection_list + [(first_line + second_line + 1) // 2]
+
         center_y += interval
 
     if not detection_list:
@@ -143,7 +143,7 @@ def draw_lines(img, lines_equation):
 
         cv2.line(blank_image, (x1, y1), (x2, y2), (0, 255, 0), thickness=10)
 
-    cv2.circle(blank_image, (278,720), 10, (0, 0, 255), thickness = 10)
+    cv2.circle(blank_image, (278, 720), 10, (0, 0, 255), thickness=10)
     img = cv2.addWeighted(img, 0.8, blank_image, 1, 0.0)
     return img
 
@@ -160,9 +160,6 @@ def lines_dist(line1, line2, center=False):
             line1_bottom = np.array([line1[0][0], line1[0][1]])
 
         return int(np.linalg.norm(line1_bottom - line2))
-
-    line1_bottom = 0
-    line2_bottom = 0
 
     if line1[0][3] > line1[0][1]:
         line1_bottom = np.array([line1[0][2], line1[0][3]])
@@ -206,7 +203,10 @@ def process_lines(lines, width, height):
     return lines
 
 
-def process(image):
+def process(image, height_, width_):
+    global height
+    height = height_
+    width = width_
     print(image.shape)
     region_of_interest_vertices = [
         (0, height),
@@ -284,29 +284,3 @@ def obtain_lanes():
             lines_equation.append([m, b])
 
     return lines_equation
-
-
-background = cv2.imread('background.jpg')
-height = background.shape[0]
-width = background.shape[1]
-# background = cv2.cvtColor(background, cv2.COLOR_BGR2RGB)
-lines = process(background)
-
-lines_equation = []
-
-for line in lines:
-    for x1, y1, x2, y2 in line:
-        m,b = fit_curve(x1, y1, x2, y2)
-        lines_equation.append([m,b])
-
-
-lines = sort_lines2(lines_equation)
-# lines = np.delete(lines,0,axis=0)
-image_with_lines = draw_lines(background, lines)
-
-find_nearest_lines2(lines,(100,100,200,200))
-
-while True:
-    cv2.imshow('Lane', image_with_lines)
-    if cv2.waitKey(1) & 0xFF == ord('q'):
-        break
